@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tactical Control UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto Mono', monospace;
+            position: relative; /* Required for the pseudo-element background */
+        }
+        /* This pseudo-element creates the background layer */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            /* This now points to your local image file */
+            background-image: url('retro-style-view-combat-tank-vehicle-war-time.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15; /* Adjust opacity here */
+            z-index: -1; /* Puts the background behind all other content */
+        }
+        .font-display {
+            font-family: 'Black Ops One', cursive;
+        }
+        .mode-active, .latch-active {
+            background-color: #ca8a04 !important; /* amber-600 */
+            border-color: #f59e0b; /* amber-500 */
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-black text-slate-200 overflow-hidden">
+
+    <!-- Logo on Top Left -->
+    <div class="absolute top-0 left-0 p-4 md:p-6 z-10">
+        <span class="font-display text-4xl md:text-5xl font-extrabold text-amber-400 tracking-wider">ARMOR</span>
+    </div>
+
+    <!-- Main Screen-Fit Container -->
+    <div class="h-screen w-screen flex flex-col items-center p-2 sm:p-4">
+
+        <!-- Status Display -->
+        <div id="status-display" class="flex-shrink-0 h-10 my-1 text-slate-400 text-lg font-medium transition-opacity duration-300 text-center tracking-wide">
+            Status: Standby
+        </div>
+
+        <!-- Video Streaming Placeholder -->
+        <div class="w-full max-w-6xl flex-grow min-h-0 bg-black border-4 border-amber-500 rounded-md shadow-2xl shadow-amber-500/10 flex items-center justify-center overflow-hidden">
+            <img src="https://placehold.co/1280x720/000000/FFFFFF?text=BARREL+CAM+FEED" alt="Live Video Feed" class="w-full h-full object-contain">
+        </div>
+
+        <!-- Controls Container -->
+        <div class="flex-shrink-0 mt-2 md:mt-4 w-full max-w-5xl flex flex-col md:grid md:grid-cols-3 items-center gap-2 md:gap-6">
+
+            <!-- Left Box: Control Mode -->
+            <div class="w-full border-2 border-slate-700 bg-slate-900/50 rounded-md p-2 md:p-4 flex flex-col items-center space-y-2 md:space-y-4 h-full">
+                <h3 class="font-display text-base md:text-lg font-semibold text-slate-400 tracking-widest">CONTROL MODE</h3>
+                <button id="manual-btn" onclick="handleMode('Manual')" class="font-display tracking-widest w-full px-4 py-2 text-base md:text-lg bg-slate-700 hover:bg-amber-600 border border-slate-600 hover:border-amber-500 rounded-md transition-all duration-200 shadow-lg">
+                    MANUAL
+                </button>
+                <button id="autonomous-btn" onclick="handleMode('Autonomous')" class="font-display tracking-widest w-full px-4 py-2 text-base md:text-lg bg-slate-700 hover:bg-amber-600 border border-slate-600 hover:border-amber-500 rounded-md transition-all duration-200 shadow-lg">
+                    AUTONOMOUS
+                </button>
+            </div>
+            
+            <!-- Right Box: Movement and Brush -->
+            <div id="movement-controls" class="w-full md:col-start-3 border-2 border-slate-700 bg-slate-900/50 rounded-md p-2 md:p-4 flex flex-col items-center space-y-3 md:space-y-4 h-full transition-opacity duration-300">
+                 <!-- Movement Controls -->
+                <div class="flex items-center space-x-4 md:space-x-6">
+                    <button id="left-btn" onclick="handleCommand('Left')" class="font-display tracking-widest px-4 py-2 text-lg md:px-8 md:py-3 md:text-xl bg-slate-700 hover:bg-amber-600 border border-slate-600 hover:border-amber-500 rounded-md transition-all duration-200 shadow-lg">
+                        LEFT
+                    </button>
+                    <button id="right-btn" onclick="handleCommand('Right')" class="font-display tracking-widest px-4 py-2 text-lg md:px-8 md:py-3 md:text-xl bg-slate-700 hover:bg-amber-600 border border-slate-600 hover:border-amber-500 rounded-md transition-all duration-200 shadow-lg">
+                        RIGHT
+                    </button>
+                </div>
+                <!-- Brush & Latch Toggles -->
+                <div class="flex items-center justify-center space-x-4 w-full">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm md:text-base font-medium text-slate-300">Brush</span>
+                        <button id="brush-toggle" onclick="toggleBrush()" class="w-14 h-7 flex items-center bg-slate-700 rounded-full p-1 transition-colors duration-300">
+                            <div id="brush-knob" class="w-5 h-5 bg-slate-300 rounded-full shadow-md transform transition-transform duration-300 translate-x-0"></div>
+                        </button>
+                    </div>
+                     <div class="flex items-center space-x-2">
+                        <span class="text-sm md:text-base font-medium text-slate-300">Latch</span>
+                        <button id="latch-toggle" onclick="toggleLatchMode()" class="w-14 h-7 flex items-center bg-slate-700 rounded-full p-1 transition-colors duration-300">
+                            <div id="latch-knob" class="w-5 h-5 bg-slate-300 rounded-full shadow-md transform transition-transform duration-300 translate-x-0"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: Start/Stop Button and Timer -->
+            <div class="w-full md:w-auto md:col-start-2 md:row-start-1 flex flex-col items-center justify-center gap-2">
+                 <button id="start-stop-btn" onclick="handleStartStop()" class="font-display w-full md:w-auto px-8 py-3 text-xl md:px-10 md:py-4 md:text-2xl bg-green-800 hover:bg-green-700 border-2 border-green-600 rounded-md font-bold transition-all duration-200 shadow-lg tracking-wider">
+                    ENGAGE
+                </button>
+                <div class="flex flex-col items-center">
+                    <span class="text-xs font-medium text-slate-400 tracking-widest">MISSION TIME</span>
+                    <span id="timer" class="text-2xl font-mono font-bold text-amber-400">00:00</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        let isSystemActive = false;
+        let isBrushOn = false;
+        let currentMode = null; // 'Manual' or 'Autonomous'
+        let currentLatchMode = 'Toggle'; // 'Toggle' or 'Latch'
+        let timerInterval = null;
+        let startTime = 0;
+
+        // --- ELEMENT REFERENCES ---
+        const statusDisplay = document.getElementById('status-display');
+        const manualBtn = document.getElementById('manual-btn');
+        const autonomousBtn = document.getElementById('autonomous-btn');
+        const startStopBtn = document.getElementById('start-stop-btn');
+        const timerDisplay = document.getElementById('timer');
+        
+        const movementControls = document.getElementById('movement-controls');
+        const leftBtn = document.getElementById('left-btn');
+        const rightBtn = document.getElementById('right-btn');
+
+        const brushToggle = document.getElementById('brush-toggle');
+        const brushKnob = document.getElementById('brush-knob');
+        const brushStatus = document.getElementById('brush-status');
+
+        const latchToggle = document.getElementById('latch-toggle');
+        const latchKnob = document.getElementById('latch-knob');
+        const latchStatus = document.getElementById('latch-status');
+
+        // --- FUNCTIONS ---
+
+        function handleMode(mode) {
+            if (isSystemActive) return;
+            currentMode = mode;
+            statusDisplay.textContent = `${mode} mode selected. Press ENGAGE.`;
+            startStopBtn.disabled = false;
+            
+            if (mode === 'Manual') {
+                manualBtn.classList.add('mode-active');
+                autonomousBtn.classList.remove('mode-active');
+            } else {
+                autonomousBtn.classList.add('mode-active');
+                manualBtn.classList.remove('mode-active');
+            }
+        }
+
+        function handleStartStop() {
+            isSystemActive = !isSystemActive;
+            
+            if (isSystemActive) {
+                // --- STARTING THE SYSTEM ---
+                startStopBtn.textContent = 'STOP';
+                startStopBtn.classList.remove('bg-green-800', 'hover:bg-green-700', 'border-green-600');
+                startStopBtn.classList.add('bg-red-800', 'hover:bg-red-700', 'border-red-600');
+                
+                manualBtn.disabled = true;
+                autonomousBtn.disabled = true;
+
+                statusDisplay.textContent = `${currentMode} mode active.`;
+
+                if (currentMode === 'Manual') {
+                    movementControls.classList.remove('opacity-50', 'pointer-events-none');
+                }
+
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+
+            } else {
+                // --- STOPPING THE SYSTEM ---
+                startStopBtn.textContent = 'ENGAGE';
+                startStopBtn.classList.remove('bg-red-800', 'hover:bg-red-700', 'border-red-600');
+                startStopBtn.classList.add('bg-green-800', 'hover:bg-green-700', 'border-green-600');
+
+                manualBtn.disabled = false;
+                autonomousBtn.disabled = false;
+                
+                movementControls.classList.add('opacity-50', 'pointer-events-none');
+                
+                clearInterval(timerInterval);
+                timerDisplay.textContent = "00:00";
+                handleCommand('Stop'); // Also updates status
+            }
+        }
+        
+        function updateTimer() {
+            const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
+            const seconds = (elapsedSeconds % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${minutes}:${seconds}`;
+        }
+
+        function handleCommand(command) {
+            if (!isSystemActive && command !== 'Stop') return;
+
+            if (command === 'Stop') {
+                statusDisplay.textContent = isSystemActive ? `${currentMode} mode active` : 'System stopped. Select a mode.';
+                leftBtn.classList.remove('latch-active');
+                rightBtn.classList.remove('latch-active');
+                return;
+            }
+            
+            if (currentMode !== 'Manual') return;
+
+            statusDisplay.textContent = `Status: Moving ${command}`;
+            
+            if(currentLatchMode === 'Latch') {
+                if(command === 'Left') {
+                    leftBtn.classList.toggle('latch-active');
+                    rightBtn.classList.remove('latch-active');
+                } else if (command === 'Right') {
+                    rightBtn.classList.toggle('latch-active');
+                    leftBtn.classList.remove('latch-active');
+                }
+            }
+        }
+
+        function toggleBrush() {
+            if (!isSystemActive || currentMode !== 'Manual') return;
+
+            isBrushOn = !isBrushOn;
+            statusDisplay.textContent = `Status: Brush turned ${isBrushOn ? 'ON' : 'OFF'}`;
+            brushToggle.classList.toggle('bg-amber-600', isBrushOn);
+            brushToggle.classList.toggle('bg-slate-700', !isBrushOn);
+            brushKnob.classList.toggle('translate-x-full', isBrushOn);
+        }
+
+        function toggleLatchMode() {
+             if (!isSystemActive || currentMode !== 'Manual') return;
+            const isLatch = currentLatchMode === 'Toggle';
+            currentLatchMode = isLatch ? 'Latch' : 'Toggle';
+
+            statusDisplay.textContent = `Status: Latch mode ${isLatch ? 'ON' : 'OFF'}`;
+            latchToggle.classList.toggle('bg-amber-600', isLatch);
+            latchToggle.classList.toggle('bg-slate-700', !isLatch);
+            latchKnob.classList.toggle('translate-x-full', isLatch);
+
+            if(!isLatch) {
+                leftBtn.classList.remove('latch-active');
+                rightBtn.classList.remove('latch-active');
+            }
+        }
+        
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            statusDisplay.textContent = 'Select control mode to begin';
+            startStopBtn.textContent = 'ENGAGE';
+            startStopBtn.disabled = true;
+            movementControls.classList.add('opacity-50', 'pointer-events-none');
+        });
+    </script>
+
+</body>
+</html>
+
